@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8b4b3f">
+<title>Glucosedagboek — VPKB</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Glucosedagboek">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rust:#8b4b3f;
+    --rust-dark:#6e3a30;
+    --terra:#c2907e;
+    --sand:#dfd0ca;
+    --cream:#FBF6F3;
+    --card:#FFFFFF;
+    --ink:#3B2620;
+    --ink-soft:#8a7169;
+    --line:#dfd0ca;
+    --alert:#B23B2E;
+    --alert-tint:#FBEAE6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:48px;
+  }
+  header.top{
+    background:var(--rust);
+    color:#fff;
+    padding:22px 20px 26px;
+    border-radius:0 0 22px 22px;
+  }
+  header.top .eyebrow{
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    opacity:.8;
+    margin:0 0 4px;
+  }
+  header.top h1{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0 0 8px;
+    line-height:1.15;
+  }
+  header.top p{
+    margin:0;
+    font-size:13.5px;
+    line-height:1.5;
+    opacity:.92;
+    max-width:34em;
+  }
+  .wrap{
+    max-width:560px;
+    margin:0 auto;
+    padding:0 16px;
+  }
+  .banner-warn{
+    display:none;
+    margin:14px 16px 0;
+    background:var(--alert-tint);
+    color:var(--alert);
+    border:1px solid #EBC5BE;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13px;
+    line-height:1.5;
+  }
+  .banner-warn.show{display:block;}
+  section.card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+    margin-top:16px;
+  }
+  section.card h2{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:17px;
+    margin:0 0 4px;
+  }
+  section.card .hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+    line-height:1.5;
+  }
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .field{
+    margin-bottom:12px;
+  }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:15px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#fff;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--rust);
+  }
+  .richtwaarden-static{
+    margin-top:4px;
+    background:#F7EFEC;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .richtwaarden-static strong{color:var(--ink);}
+
+  .day-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    margin-top:12px;
+    overflow:hidden;
+  }
+  .day-card summary{
+    list-style:none;
+    cursor:pointer;
+    padding:16px 16px 14px;
+  }
+  .day-card summary::-webkit-details-marker{display:none;}
+  .day-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .day-head .datum{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:16.5px;
+    text-transform:capitalize;
+  }
+  .termijn-badge{
+    font-size:11px;
+    font-weight:600;
+    color:var(--rust);
+    background:#F1E1DC;
+    border-radius:20px;
+    padding:4px 10px;
+    white-space:nowrap;
+  }
+  .day-arc{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .day-arc .track{
+    flex:1;
+    height:3px;
+    border-radius:2px;
+    background:linear-gradient(90deg,var(--rust),var(--terra) 50%,var(--sand));
+    opacity:.45;
+  }
+  .arc-dot{
+    width:9px;height:9px;border-radius:50%;
+    border:2px solid var(--line);
+    background:#fff;
+    flex-shrink:0;
+  }
+  .arc-dot.filled{border-color:transparent;}
+  .arc-dot.c0.filled{background:var(--rust);}
+  .arc-dot.c1.filled{background:var(--terra);}
+  .arc-dot.c2.filled{background:var(--sand); border:2px solid var(--terra);}
+
+  .day-body{
+    padding:0 16px 18px;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  .subsection-title{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--rust);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin:16px 0 8px;
+  }
+  .subsection-title:first-child{margin-top:0;}
+
+  .meting-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .meting{
+    border-left:3px solid var(--line);
+    padding:6px 0 6px 10px;
+    border-radius:6px;
+    transition:background .15s;
+  }
+  .meting.over{
+    border-left-color:var(--alert);
+    background:var(--alert-tint);
+  }
+  .meting label{
+    display:block;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .meting .row2{
+    display:flex;
+    gap:6px;
+  }
+  .meting input[type="time"]{
+    width:78px;
+    flex-shrink:0;
+  }
+  .meting input{
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 8px;
+    font-size:14.5px;
+    font-family:inherit;
+  }
+  .meting input.waarde{width:100%;}
+  .meting.over input{border-color:var(--alert);}
+  .meting input:focus{outline:none;border-color:var(--rust);}
+  .meting .unit{font-size:10.5px;color:var(--ink-soft);display:block;margin-top:3px;}
+
+  .maaltijd-block{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .maaltijd-block .mrow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  .maaltijd-block .mrow label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .maaltijd-block input[type="time"]{
+    width:88px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:7px 8px;
+    font-size:13.5px;
+    font-family:inherit;
+  }
+  .maaltijd-block input[type="text"]{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .maaltijd-block input:focus{outline:none;border-color:var(--rust);}
+
+  .snack-row{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .snack-row input[type="time"]{
+    width:88px;
+    flex-shrink:0;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 8px;
+    font-size:13.5px;
+    font-family:inherit;
+  }
+  .snack-row input[type="text"]{
+    flex:1;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .snack-row input:focus{outline:none;border-color:var(--rust);}
+  .snack-remove{
+    background:none;
+    border:none;
+    color:var(--alert);
+    font-size:20px;
+    line-height:1;
+    padding:4px 6px;
+    cursor:pointer;
+  }
+  .snack-add{
+    background:#F1E1DC;
+    color:var(--rust);
+    border:none;
+    border-radius:8px;
+    padding:9px 12px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .opmerking-field label{
+    display:block;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .opmerking-field input{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .opmerking-field input:focus{outline:none;border-color:var(--rust);}
+
+  .actions{
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  button{
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    border-radius:12px;
+    padding:14px 18px;
+    border:none;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--rust);
+    color:#fff;
+  }
+  .btn-primary:active{background:var(--rust-dark);}
+  .btn-secondary{
+    background:transparent;
+    color:var(--alert);
+    border:1.5px solid #EBC5BE;
+  }
+  .btn-secondary:active{background:var(--alert-tint);}
+
+  footer{
+    max-width:560px;
+    margin:22px auto 0;
+    padding:0 16px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(59,38,32,.45);
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:#fff;
+    border-radius:18px 18px 0 0;
+    padding:22px 20px calc(20px + env(safe-area-inset-bottom));
+    width:100%;
+    max-width:560px;
+  }
+  .modal-box h3{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:18px;
+    margin:0 0 8px;
+  }
+  .modal-box p{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    line-height:1.55;
+    margin:0 0 18px;
+  }
+  .modal-actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .btn-danger{
+    background:var(--alert);
+    color:#fff;
+  }
+  .btn-cancel{
+    background:#F1E9E6;
+    color:var(--ink);
+  }
+  @media (min-width:520px){
+    .modal-overlay{align-items:center;}
+    .modal-box{border-radius:18px; max-width:420px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap" style="padding:0;">
+    <p class="eyebrow">Verloskundigenpraktijk Kaag en Braassem</p>
+    <h1>Glucosedagboek</h1>
+    <p>Vul elke dag je glucosewaarden, maaltijden en tussendoortjes in. Aan het einde van de periode maak je een PDF aan en stuur je die naar de praktijk.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="storageWarning" class="banner-warn">
+    Lokale opslag is in deze weergave niet beschikbaar, dus ingevulde waarden worden nu niet bewaard tussen bezoeken.
+    Open dit bestand rechtstreeks in je browser (niet als voorbeeld) om alles automatisch te laten opslaan.
+  </div>
+
+  <section class="card">
+    <h2>Jouw gegevens</h2>
+    <p class="hint">Deze gegevens komen op de PDF te staan, zodat de praktijk weet van wie het dagboek is.</p>
+    <div class="field-row">
+      <div class="field">
+        <label for="voornaam">Voornaam</label>
+        <input id="voornaam" type="text" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label for="achternaam">Achternaam</label>
+        <input id="achternaam" type="text" autocomplete="family-name">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="geboortedatum">Geboortedatum (optioneel)</label>
+        <input id="geboortedatum" type="date">
+      </div>
+      <div class="field">
+        <label for="uitgerekendeDatum">Uitgerekende datum</label>
+        <input id="uitgerekendeDatum" type="date">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="aantalDagen">Aantal dagen bijhouden</label>
+        <input id="aantalDagen" type="number" min="1" max="31" step="1">
+      </div>
+      <div class="field">
+        <label for="startdatum">Startdatum periode</label>
+        <input id="startdatum" type="date">
+      </div>
+    </div>
+
+    <div class="richtwaarden-static">
+      <strong>Richtwaarden</strong> (vast ingesteld): nuchter &lt; 5,3 mmol/l · 1 uur na het beëindigen van de maaltijd &lt; 7,8 mmol/l.
+    </div>
+  </section>
+
+  <div id="days"></div>
+
+  <div class="actions">
+    <button class="btn-primary" id="btnPdf">PDF genereren</button>
+    <button class="btn-secondary" id="btnReset">Nieuwe periode starten — waarden en voeding wissen</button>
+  </div>
+</div>
+
+<footer>
+  Richtwaarden zijn algemene streefwaarden en vervangen geen persoonlijk advies van je verloskundige.
+  Alle gegevens blijven op je eigen telefoon staan totdat je zelf de PDF verstuurt.
+</footer>
+
+<div class="modal-overlay" id="resetModal">
+  <div class="modal-box">
+    <h3>Weet je het zeker?</h3>
+    <p>Alle ingevulde glucosewaarden, maaltijden, tussendoortjes en opmerkingen van deze periode worden definitief verwijderd. Je naam en gegevens blijven bewaard. Dit kan niet ongedaan gemaakt worden.</p>
+    <div class="modal-actions">
+      <button class="btn-danger" id="confirmReset">Ja, verwijder alle ingevulde waarden</button>
+      <button class="btn-cancel" id="cancelReset">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="startdatumModal">
+  <div class="modal-box">
+    <h3>Weet je zeker dat je een nieuwe datum wilt invullen?</h3>
+    <p>Eventueel onderstaande ingevulde gegevens gaan dan uit beeld. Vergeet niet eerst een PDF te maken van de huidige periode voordat je de startdatum wijzigt!</p>
+    <div class="modal-actions">
+      <button class="btn-danger" id="confirmStartdatum">Ja, nieuwe startdatum gebruiken</button>
+      <button class="btn-cancel" id="cancelStartdatum">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "vpkb-glucosedagboek-v2";
+  var storageAvailable = true;
+
+  var TARGETS = { nuchter: 5.3, postprandiaal: 7.8 };
+
+  var WEEKDAGEN = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"];
+  var MAANDEN = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
+
+  var MOMENTEN = [
+    {key:"nuchter",   label:"Nuchter",         target:"nuchter"},
+    {key:"naOntbijt", label:"1u na ontbijt",   target:"postprandiaal"},
+    {key:"naLunch",   label:"1u na lunch",     target:"postprandiaal"},
+    {key:"naDiner",   label:"1u na diner",     target:"postprandiaal"}
+  ];
+
+  var MAALTIJDEN = [
+    {key:"ontbijt", label:"Ontbijt"},
+    {key:"lunch",   label:"Lunch"},
+    {key:"diner",   label:"Diner"}
+  ];
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function toISO(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function todayISO(){ return toISO(new Date()); }
+
+  function computeDates(startISO, n){
+    var start = new Date(startISO+"T00:00:00");
+    var arr = [];
+    for(var i=0;i<n;i++){
+      var d = new Date(start);
+      d.setDate(d.getDate()+i);
+      arr.push(toISO(d));
+    }
+    return arr;
+  }
+
+  function formatKort(iso){
+    var d = new Date(iso+"T00:00:00");
+    return WEEKDAGEN[d.getDay()].slice(0,2)+" "+d.getDate()+" "+MAANDEN[d.getMonth()];
+  }
+  function formatLang(iso){
+    var d = new Date(iso+"T00:00:00");
+    return WEEKDAGEN[d.getDay()]+" "+d.getDate()+" "+MAANDEN[d.getMonth()]+" "+d.getFullYear();
+  }
+
+  function berekenTermijn(uitgerekendeISO, dateISO){
+    if(!uitgerekendeISO) return null;
+    var due = new Date(uitgerekendeISO+"T00:00:00");
+    var d = new Date(dateISO+"T00:00:00");
+    var diffDays = Math.round((due - d) / 86400000);
+    var gaDays = 280 - diffDays;
+    if(gaDays < 0 || gaDays > 320) return null;
+    var weeks = Math.floor(gaDays/7);
+    var days = gaDays % 7;
+    return { weeks: weeks, days: days, label: weeks + "+" + days + " wkn" };
+  }
+
+  function defaultState(){
+    return {
+      client:{
+        voornaam:"", achternaam:"", geboortedatum:"", uitgerekendeDatum:"",
+        startdatum: todayISO(),
+        aantalDagen: 7
+      },
+      readings:{}
+    };
+  }
+
+  function defaultDay(){
+    return {
+      nuchter:{waarde:null, tijd:""},
+      naOntbijt:{waarde:null, tijd:""},
+      naLunch:{waarde:null, tijd:""},
+      naDiner:{waarde:null, tijd:""},
+      maaltijden:{
+        ontbijt:{tijd:"", tekst:""},
+        lunch:{tijd:"", tekst:""},
+        diner:{tijd:"", tekst:""}
+      },
+      tussendoortjes:[],
+      opmerking:""
+    };
+  }
+
+  function normalizeDay(raw){
+    var day = defaultDay();
+    if(!raw) return day;
+    MOMENTEN.forEach(function(m){
+      var v = raw[m.key];
+      if(v && typeof v === "object"){
+        day[m.key] = { waarde: v.waarde!=null? v.waarde:null, tijd: v.tijd||"" };
+      } else if(v !== undefined && v !== null){
+        day[m.key] = { waarde: v, tijd:"" };
+      }
+    });
+    if(raw.maaltijden){
+      MAALTIJDEN.forEach(function(mm){
+        if(raw.maaltijden[mm.key]){
+          day.maaltijden[mm.key] = {
+            tijd: raw.maaltijden[mm.key].tijd || "",
+            tekst: raw.maaltijden[mm.key].tekst || ""
+          };
+        }
+      });
+    }
+    if(Array.isArray(raw.tussendoortjes)) day.tussendoortjes = raw.tussendoortjes;
+    if(raw.opmerking) day.opmerking = raw.opmerking;
+    return day;
+  }
+
+  var state = defaultState();
+  var openDates = {};
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        state = defaultState();
+        state.client = Object.assign(state.client, parsed.client||{});
+        var readings = {};
+        Object.keys(parsed.readings||{}).forEach(function(dateISO){
+          readings[dateISO] = normalizeDay(parsed.readings[dateISO]);
+        });
+        state.readings = readings;
+      }
+    }catch(e){
+      storageAvailable = false;
+    }
+  }
+
+  function save(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      storageAvailable = false;
+      document.getElementById("storageWarning").classList.add("show");
+    }
+  }
+
+  function parseNum(str){
+    if(str===null || str===undefined || str==="") return null;
+    var v = parseFloat(String(str).replace(",","."));
+    return isNaN(v) ? null : v;
+  }
+  function fmtNum(v){
+    if(v===null || v===undefined) return "";
+    return String(v).replace(".",",");
+  }
+
+  function firstLetters(str){
+    return (str||"").trim().split(/\s+/).filter(Boolean).map(function(w){return w[0].toUpperCase();}).join("");
+  }
+  function initialenStr(voornaam, achternaam){
+    var s = firstLetters(voornaam) + firstLetters(achternaam);
+    return s || "XX";
+  }
+  function geboortedatumFilenameStr(iso){
+    if(!iso) return "onbekend";
+    var d = new Date(iso+"T00:00:00");
+    return pad(d.getDate())+pad(d.getMonth()+1)+d.getFullYear();
+  }
+  function termijnFilenameStr(t){
+    return t ? (t.weeks + "w" + t.days) : "onbekend";
+  }
+
+  // ---------- render ----------
+
+  function renderClientFields(){
+    document.getElementById("voornaam").value = state.client.voornaam;
+    document.getElementById("achternaam").value = state.client.achternaam;
+    document.getElementById("geboortedatum").value = state.client.geboortedatum;
+    document.getElementById("uitgerekendeDatum").value = state.client.uitgerekendeDatum;
+    document.getElementById("aantalDagen").value = state.client.aantalDagen;
+    document.getElementById("startdatum").value = state.client.startdatum;
+  }
+
+  function renderDays(){
+    var container = document.getElementById("days");
+    container.innerHTML = "";
+    var dates = computeDates(state.client.startdatum, state.client.aantalDagen);
+
+    if(Object.keys(openDates).length === 0){
+      var idx = dates.indexOf(todayISO());
+      openDates[dates[idx >= 0 ? idx : 0]] = true;
+    }
+
+    dates.forEach(function(dateISO){
+      if(!state.readings[dateISO]) state.readings[dateISO] = defaultDay();
+      var day = state.readings[dateISO];
+
+      var details = document.createElement("details");
+      details.className = "day-card";
+      if(openDates[dateISO]) details.open = true;
+      details.addEventListener("toggle", function(){
+        if(details.open) openDates[dateISO] = true; else delete openDates[dateISO];
+      });
+
+      var summary = document.createElement("summary");
+      var head = document.createElement("div");
+      head.className = "day-head";
+      var datumEl = document.createElement("span");
+      datumEl.className = "datum";
+      datumEl.textContent = formatKort(dateISO);
+      head.appendChild(datumEl);
+      var termijn = berekenTermijn(state.client.uitgerekendeDatum, dateISO);
+      if(termijn){
+        var badge = document.createElement("span");
+        badge.className = "termijn-badge";
+        badge.textContent = termijn.label;
+        head.appendChild(badge);
+      }
+      summary.appendChild(head);
+
+      var arc = document.createElement("div");
+      arc.className = "day-arc";
+      var arcColors = ["c0","c1","c2","c0"];
+      MOMENTEN.forEach(function(m, i){
+        var dot = document.createElement("span");
+        dot.className = "arc-dot "+arcColors[i];
+        if(day[m.key].waarde !== null) dot.className += " filled";
+        arc.appendChild(dot);
+        if(i < MOMENTEN.length-1){
+          var track = document.createElement("span");
+          track.className = "track";
+          arc.appendChild(track);
+        }
+      });
+      summary.appendChild(arc);
+      details.appendChild(summary);
+
+      var body = document.createElement("div");
+      body.className = "day-body";
+
+      // Glucosewaarden
+      var glucoseTitle = document.createElement("div");
+      glucoseTitle.className = "subsection-title";
+      glucoseTitle.textContent = "Glucosewaarden";
+      body.appendChild(glucoseTitle);
+
+      var grid = document.createElement("div");
+      grid.className = "meting-grid";
+      MOMENTEN.forEach(function(m){
+        var wrap = document.createElement("div");
+        wrap.className = "meting";
+        var val = day[m.key].waarde;
+        var target = TARGETS[m.target];
+        if(val !== null && val >= target) wrap.className += " over";
+
+        var label = document.createElement("label");
+        label.textContent = m.label;
+        wrap.appendChild(label);
+
+        var row = document.createElement("div");
+        row.className = "row2";
+
+        var tijdInput = document.createElement("input");
+        tijdInput.type = "time";
+        tijdInput.value = day[m.key].tijd || "";
+        tijdInput.addEventListener("change", function(){
+          day[m.key].tijd = tijdInput.value;
+          save();
+        });
+        row.appendChild(tijdInput);
+
+        var waardeInput = document.createElement("input");
+        waardeInput.type = "text";
+        waardeInput.className = "waarde";
+        waardeInput.inputMode = "decimal";
+        waardeInput.placeholder = "mmol/l";
+        waardeInput.value = val !== null ? fmtNum(val) : "";
+        waardeInput.addEventListener("change", function(){
+          day[m.key].waarde = parseNum(waardeInput.value);
+          save();
+          renderDays();
+        });
+        row.appendChild(waardeInput);
+
+        wrap.appendChild(row);
+        grid.appendChild(wrap);
+      });
+      body.appendChild(grid);
+
+      // Maaltijden
+      var maaltijdTitle = document.createElement("div");
+      maaltijdTitle.className = "subsection-title";
+      maaltijdTitle.textContent = "Maaltijden — wat heb je gegeten?";
+      body.appendChild(maaltijdTitle);
+      var maaltijdHint = document.createElement("p");
+      maaltijdHint.style.cssText = "font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5;text-align:right;";
+      maaltijdHint.textContent = "Tijd van einde maaltijd";
+      body.appendChild(maaltijdHint);
+
+      MAALTIJDEN.forEach(function(mm){
+        var block = document.createElement("div");
+        block.className = "maaltijd-block";
+
+        var mrow = document.createElement("div");
+        mrow.className = "mrow";
+        var mlabel = document.createElement("label");
+        mlabel.textContent = mm.label;
+        mrow.appendChild(mlabel);
+        var mtijd = document.createElement("input");
+        mtijd.type = "time";
+        mtijd.value = day.maaltijden[mm.key].tijd || "";
+        mtijd.addEventListener("change", function(){
+          day.maaltijden[mm.key].tijd = mtijd.value;
+          save();
+        });
+        mrow.appendChild(mtijd);
+        block.appendChild(mrow);
+
+        var mtekst = document.createElement("input");
+        mtekst.type = "text";
+        mtekst.placeholder = "bijv. 2 boterhammen met kaas, glas melk";
+        mtekst.value = day.maaltijden[mm.key].tekst || "";
+        mtekst.addEventListener("change", function(){
+          day.maaltijden[mm.key].tekst = mtekst.value;
+          save();
+        });
+        block.appendChild(mtekst);
+
+        body.appendChild(block);
+      });
+
+      // Tussendoortjes
+      var snackTitle = document.createElement("div");
+      snackTitle.className = "subsection-title";
+      snackTitle.textContent = "Tussendoortjes";
+      body.appendChild(snackTitle);
+
+      var snackList = document.createElement("div");
+      day.tussendoortjes.forEach(function(sn, i){
+        var srow = document.createElement("div");
+        srow.className = "snack-row";
+
+        var stijd = document.createElement("input");
+        stijd.type = "time";
+        stijd.value = sn.tijd || "";
+        stijd.addEventListener("change", function(){
+          sn.tijd = stijd.value;
+          save();
+        });
+        srow.appendChild(stijd);
+
+        var stekst = document.createElement("input");
+        stekst.type = "text";
+        stekst.placeholder = "bijv. appel";
+        stekst.value = sn.tekst || "";
+        stekst.addEventListener("change", function(){
+          sn.tekst = stekst.value;
+          save();
+        });
+        srow.appendChild(stekst);
+
+        var sremove = document.createElement("button");
+        sremove.type = "button";
+        sremove.className = "snack-remove";
+        sremove.innerHTML = "&times;";
+        sremove.addEventListener("click", function(){
+          day.tussendoortjes.splice(i,1);
+          save();
+          renderDays();
+        });
+        srow.appendChild(sremove);
+
+        snackList.appendChild(srow);
+      });
+      body.appendChild(snackList);
+
+      var addSnackBtn = document.createElement("button");
+      addSnackBtn.type = "button";
+      addSnackBtn.className = "snack-add";
+      addSnackBtn.textContent = "+ Tussendoortje toevoegen";
+      addSnackBtn.addEventListener("click", function(){
+        day.tussendoortjes.push({tijd:"", tekst:""});
+        save();
+        renderDays();
+      });
+      body.appendChild(addSnackBtn);
+
+      // Opmerking
+      var opTitle = document.createElement("div");
+      opTitle.className = "subsection-title";
+      opTitle.textContent = "Overige bijzonderheden";
+      body.appendChild(opTitle);
+
+      var opWrap = document.createElement("div");
+      opWrap.className = "opmerking-field";
+      var opInput = document.createElement("input");
+      opInput.type = "text";
+      opInput.placeholder = "bijv. ziek, extra beweging, feestje";
+      opInput.value = day.opmerking || "";
+      opInput.addEventListener("change", function(){
+        day.opmerking = opInput.value;
+        save();
+      });
+      opWrap.appendChild(opInput);
+      body.appendChild(opWrap);
+
+      details.appendChild(body);
+      container.appendChild(details);
+    });
+  }
+
+  function renderAll(){
+    renderClientFields();
+    renderDays();
+  }
+
+  // ---------- client field events ----------
+
+  function bindClientField(id, key, isNumber){
+    document.getElementById(id).addEventListener("change", function(e){
+      var v = e.target.value;
+      if(isNumber) v = parseInt(v,10) || 1;
+      state.client[key] = v;
+      save();
+      if(id==="aantalDagen" || id==="startdatum"){ openDates = {}; renderDays(); }
+      else renderDays();
+    });
+  }
+  bindClientField("voornaam", "voornaam");
+  bindClientField("achternaam", "achternaam");
+  bindClientField("geboortedatum", "geboortedatum");
+  bindClientField("uitgerekendeDatum", "uitgerekendeDatum");
+  bindClientField("aantalDagen", "aantalDagen", true);
+
+  // ---------- startdatum change confirmation ----------
+
+  var startdatumModal = document.getElementById("startdatumModal");
+  var startdatumInput = document.getElementById("startdatum");
+  var pendingStartdatum = null;
+
+  startdatumInput.addEventListener("change", function(e){
+    pendingStartdatum = e.target.value;
+    startdatumModal.classList.add("show");
+  });
+  document.getElementById("cancelStartdatum").addEventListener("click", function(){
+    startdatumInput.value = state.client.startdatum;
+    pendingStartdatum = null;
+    startdatumModal.classList.remove("show");
+  });
+  startdatumModal.addEventListener("click", function(e){
+    if(e.target === startdatumModal){
+      startdatumInput.value = state.client.startdatum;
+      pendingStartdatum = null;
+      startdatumModal.classList.remove("show");
+    }
+  });
+  document.getElementById("confirmStartdatum").addEventListener("click", function(){
+    if(pendingStartdatum){
+      state.client.startdatum = pendingStartdatum;
+      save();
+      openDates = {};
+      renderDays();
+    }
+    pendingStartdatum = null;
+    startdatumModal.classList.remove("show");
+  });
+
+  // ---------- reset flow ----------
+
+  var resetModal = document.getElementById("resetModal");
+  document.getElementById("btnReset").addEventListener("click", function(){
+    resetModal.classList.add("show");
+  });
+  document.getElementById("cancelReset").addEventListener("click", function(){
+    resetModal.classList.remove("show");
+  });
+  resetModal.addEventListener("click", function(e){
+    if(e.target === resetModal) resetModal.classList.remove("show");
+  });
+  document.getElementById("confirmReset").addEventListener("click", function(){
+    var dates = computeDates(state.client.startdatum, state.client.aantalDagen);
+    var last = new Date(dates[dates.length-1]+"T00:00:00");
+    last.setDate(last.getDate()+1);
+    state.client.startdatum = toISO(last);
+    state.readings = {};
+    openDates = {};
+    save();
+    resetModal.classList.remove("show");
+    renderAll();
+  });
+
+  // ---------- PDF ----------
+
+  document.getElementById("btnPdf").addEventListener("click", generatePDF);
+
+  function generatePDF(){
+    if(!window.jspdf){
+      alert("Het PDF-onderdeel kon niet geladen worden. Controleer je internetverbinding en probeer het opnieuw.");
+      return;
+    }
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({unit:"mm", format:"a4", orientation:"landscape"});
+    var c = state.client;
+    var dates = computeDates(c.startdatum, c.aantalDagen);
+    var RUST = [139,75,63];
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(15);
+    doc.text("Glucosedagboek zwangerschapsdiabetes", 14, 18);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10);
+    var y = 25;
+    doc.text("Verloskundigenpraktijk Kaag en Braassem", 14, y); y+=5;
+    doc.text("Cliënt: " + (c.voornaam||"—") + " " + (c.achternaam||""), 14, y); y+=5;
+    if(c.geboortedatum){
+      doc.text("Geboortedatum: " + c.geboortedatum.split("-").reverse().join("-"), 14, y); y+=5;
+    }
+    if(c.uitgerekendeDatum){
+      doc.text("Uitgerekende datum: " + c.uitgerekendeDatum.split("-").reverse().join("-"), 14, y); y+=5;
+    }
+    doc.text("Periode: " + formatLang(dates[0]) + " t/m " + formatLang(dates[dates.length-1]), 14, y); y+=3;
+
+    function cell(waarde, tijd){
+      if(waarde===null || waarde===undefined) return "-";
+      var s = fmtNum(waarde) + " mmol/l";
+      if(tijd) s = tijd + "\n" + s;
+      return s;
+    }
+    function maaltijdCell(m){
+      if(!m || (!m.tijd && !m.tekst)) return "-";
+      var s = "";
+      if(m.tijd) s += m.tijd + " — ";
+      s += (m.tekst || "");
+      return s;
+    }
+    function snackCell(list){
+      if(!list || !list.length) return "-";
+      return list.map(function(sn){
+        if(!sn.tijd && !sn.tekst) return null;
+        return (sn.tijd ? sn.tijd + " — " : "") + (sn.tekst||"");
+      }).filter(Boolean).join("\n") || "-";
+    }
+
+    var rows = dates.map(function(d){
+      var day = state.readings[d] || defaultDay();
+      var termijn = berekenTermijn(c.uitgerekendeDatum, d);
+      return [
+        formatKort(d),
+        termijn ? termijn.label : "-",
+        cell(day.nuchter.waarde, day.nuchter.tijd),
+        cell(day.naOntbijt.waarde, day.naOntbijt.tijd),
+        cell(day.naLunch.waarde, day.naLunch.tijd),
+        cell(day.naDiner.waarde, day.naDiner.tijd),
+        maaltijdCell(day.maaltijden.ontbijt),
+        maaltijdCell(day.maaltijden.lunch),
+        maaltijdCell(day.maaltijden.diner),
+        snackCell(day.tussendoortjes),
+        day.opmerking || "-"
+      ];
+    });
+
+    var overFlags = dates.map(function(d){
+      var day = state.readings[d] || defaultDay();
+      return {
+        nuchter: day.nuchter.waarde !== null && day.nuchter.waarde >= TARGETS.nuchter,
+        naOntbijt: day.naOntbijt.waarde !== null && day.naOntbijt.waarde >= TARGETS.postprandiaal,
+        naLunch: day.naLunch.waarde !== null && day.naLunch.waarde >= TARGETS.postprandiaal,
+        naDiner: day.naDiner.waarde !== null && day.naDiner.waarde >= TARGETS.postprandiaal
+      };
+    });
+    var GLUCOSE_COLS = {2:"nuchter", 3:"naOntbijt", 4:"naLunch", 5:"naDiner"};
+
+    doc.autoTable({
+      startY: y+5,
+      head: [["Datum","Termijn","Nuchter","1u na ontbijt","1u na lunch","1u na diner","Ontbijt","Lunch","Diner","Tussendoortjes","Opmerkingen"]],
+      body: rows,
+      styles:{ fontSize:7.5, cellPadding:2, overflow:"linebreak", valign:"middle" },
+      headStyles:{ fillColor:RUST, textColor:255, fontSize:7.5 },
+      columnStyles:{
+        0:{cellWidth:18}, 1:{cellWidth:15}, 2:{cellWidth:17}, 3:{cellWidth:18}, 4:{cellWidth:18}, 5:{cellWidth:18},
+        6:{cellWidth:30}, 7:{cellWidth:30}, 8:{cellWidth:30}, 9:{cellWidth:28}, 10:{cellWidth:26}
+      },
+      didParseCell: function(data){
+        if(data.section === "body"){
+          var key = GLUCOSE_COLS[data.column.index];
+          if(key && overFlags[data.row.index] && overFlags[data.row.index][key]){
+            data.cell.styles.textColor = [178,59,46];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      }
+    });
+
+    var afterTableY = doc.lastAutoTable.finalY + 6;
+    doc.setFontSize(8.5);
+    doc.setTextColor(120,110,100);
+    doc.text("Richtwaarden: nuchter vanaf 5,3 mmol/l afwijkend · 1 uur na de maaltijd vanaf 7,8 mmol/l afwijkend.", 14, afterTableY);
+    doc.setTextColor(0,0,0);
+
+    var t1 = berekenTermijn(c.uitgerekendeDatum, dates[0]);
+    var t2 = berekenTermijn(c.uitgerekendeDatum, dates[dates.length-1]);
+    var filename = "GDC_" + c.aantalDagen + "_" + initialenStr(c.voornaam, c.achternaam) + "_" +
+      geboortedatumFilenameStr(c.geboortedatum) + "_" + termijnFilenameStr(t1) + "_tot_" + termijnFilenameStr(t2) + ".pdf";
+
+    doc.save(filename);
+  }
+
+  // ---------- init ----------
+  load();
+  if(!storageAvailable){
+    document.getElementById("storageWarning").classList.add("show");
+  }
+  renderAll();
+
+  if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  }
+
+})();
+</script>
+</body>
+</html>
