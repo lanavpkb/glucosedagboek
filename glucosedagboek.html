@@ -389,6 +389,94 @@
     line-height:1.6;
   }
 
+  .install-help{
+    margin-top:16px;
+    background:#F1E1DC;
+    border:1px solid #E4C7BE;
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .install-help summary{
+    list-style:none;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+    color:var(--rust-dark);
+    line-height:1.4;
+  }
+  .install-help summary::-webkit-details-marker{display:none;}
+  .install-help summary::before{
+    content:"📲 ";
+  }
+  .install-help summary::after{
+    content:" ▸";
+    color:var(--rust);
+    font-weight:600;
+  }
+  .install-help[open] summary::after{
+    content:" ▾";
+  }
+  .install-help .install-body{
+    margin-top:10px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .install-help .install-body h4{
+    font-size:12.5px;
+    margin:0 0 6px;
+    color:var(--rust);
+  }
+  .install-help .install-body ol{
+    margin:0 0 14px;
+    padding-left:20px;
+  }
+  .install-help .install-body ol:last-child{margin-bottom:0;}
+
+  .dossier-block{
+    margin-top:28px;
+    opacity:.75;
+  }
+  .dossier-block summary{
+    list-style:none;
+    cursor:pointer;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .dossier-block summary::-webkit-details-marker{display:none;}
+  .dossier-block .dossier-body{
+    margin-top:8px;
+    display:flex;
+    gap:6px;
+  }
+  .dossier-block input{
+    flex:1;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 9px;
+    font-size:12px;
+    font-family:'SFMono-Regular',Consolas,monospace;
+    color:var(--ink-soft);
+    background:#F7F3F0;
+  }
+  .dossier-block button{
+    padding:8px 12px;
+    font-size:12px;
+    font-weight:600;
+    background:#F1E1DC;
+    color:var(--rust);
+    border-radius:8px;
+    flex-shrink:0;
+  }
+  .dossier-block button.copied{
+    background:var(--rust);
+    color:#fff;
+  }
+
   .modal-overlay{
     display:none;
     position:fixed;
@@ -452,6 +540,25 @@
     Open dit bestand rechtstreeks in je browser (niet als voorbeeld) om alles automatisch te laten opslaan.
   </div>
 
+  <details class="install-help">
+    <summary>Zo zet je deze pagina op het beginscherm van je telefoon voor snelle en gemakkelijke toegang</summary>
+    <div class="install-body">
+      <h4>Op een iPhone (Safari)</h4>
+      <ol>
+        <li>Tik onderin op het deel-icoontje (het vierkantje met het pijltje omhoog).</li>
+        <li>Scrol in het menu naar beneden en tik op "Zet op beginscherm".</li>
+        <li>Tik rechtsboven op "Voeg toe".</li>
+      </ol>
+      <h4>Op een Android-telefoon (Chrome)</h4>
+      <ol>
+        <li>Tik rechtsboven op de drie puntjes (het menu).</li>
+        <li>Tik op "App installeren" of "Toevoegen aan startscherm".</li>
+        <li>Bevestig door op "Installeren" of "Toevoegen" te tikken.</li>
+      </ol>
+      <p style="margin:0;color:var(--ink-soft);">Daarna staat het glucosedagboek als een gewoon app-icoontje op je telefoon, en hoef je niet steeds opnieuw de link op te zoeken.</p>
+    </div>
+  </details>
+
   <section class="card">
     <h2>Jouw gegevens</h2>
     <p class="hint">Deze gegevens komen op de PDF te staan, zodat de praktijk weet van wie het dagboek is.</p>
@@ -497,6 +604,14 @@
     <button class="btn-primary" id="btnPdf">PDF genereren</button>
     <button class="btn-secondary" id="btnReset">Nieuwe periode starten — waarden en voeding wissen</button>
   </div>
+
+  <details class="dossier-block">
+    <summary>Dossierregel</summary>
+    <div class="dossier-body">
+      <input type="text" id="dossierregel" readonly>
+      <button type="button" id="btnCopyDossier">Kopieer</button>
+    </div>
+  </details>
 </div>
 
 <footer>
@@ -935,6 +1050,58 @@
       details.appendChild(body);
       container.appendChild(details);
     });
+
+    updateDossierregel(dates);
+  }
+
+  function termijnKort(t){
+    return t ? (t.weeks + "+" + t.days) : "?";
+  }
+
+  function genereerDossierregelTekst(dates){
+    var c = state.client;
+
+    var termijn1 = berekenTermijn(c.uitgerekendeDatum, dates[0]);
+    var termijn2 = berekenTermijn(c.uitgerekendeDatum, dates[dates.length-1]);
+
+    var totaalMogelijk = dates.length * MOMENTEN.length;
+    var ingevuld = 0, nuchtereAfwijkend = 0, belasteAfwijkend = 0;
+
+    dates.forEach(function(d){
+      var day = state.readings[d] || defaultDay();
+      MOMENTEN.forEach(function(m){
+        var val = day[m.key].waarde;
+        if(val !== null && val !== undefined){
+          ingevuld++;
+          var target = TARGETS[m.target];
+          if(val >= target){
+            if(m.target === "nuchter") nuchtereAfwijkend++;
+            else belasteAfwijkend++;
+          }
+        }
+      });
+    });
+
+    var ontbrekend = totaalMogelijk - ingevuld;
+
+    var deel1 = termijnKort(termijn1) + "-" + termijnKort(termijn2) + " -> " + c.aantalDagen + " dagen GDC; " + ontbrekend + " ontbrekend; ";
+    var deel2;
+    if(nuchtereAfwijkend === 0 && belasteAfwijkend === 0){
+      deel2 = "ongestoord";
+    } else {
+      var parts = [];
+      if(nuchtereAfwijkend > 0) parts.push(nuchtereAfwijkend + " nuchtere glucose afwijkend");
+      if(belasteAfwijkend > 0) parts.push(belasteAfwijkend + " belaste glucoses afwijkend");
+      deel2 = parts.join(" / ") + "; B/";
+    }
+
+    return deel1 + deel2;
+  }
+
+  function updateDossierregel(dates){
+    var el = document.getElementById("dossierregel");
+    if(!el) return;
+    el.value = genereerDossierregelTekst(dates);
   }
 
   function renderAll(){
@@ -1036,9 +1203,21 @@
     doc.setFontSize(15);
     doc.text("Glucosedagboek zwangerschapsdiabetes", 14, 18);
 
+    var dossierregel = genereerDossierregelTekst(dates);
+    doc.setFillColor(247,239,236);
+    doc.setDrawColor(223,208,202);
+    doc.rect(14, 21, 269, 8, "FD");
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(9);
+    doc.setTextColor(139,75,63);
+    doc.text("Dossierregel:", 16, 26.3);
+    doc.setFont("helvetica","normal");
+    doc.setTextColor(0,0,0);
+    doc.text(dossierregel, 40, 26.3);
+
     doc.setFont("helvetica","normal");
     doc.setFontSize(10);
-    var y = 25;
+    var y = 35;
     doc.text("Verloskundigenpraktijk Kaag en Braassem", 14, y); y+=5;
     doc.text("Cliënt: " + (c.voornaam||"—") + " " + (c.achternaam||""), 14, y); y+=5;
     if(c.geboortedatum){
@@ -1133,6 +1312,31 @@
 
     doc.save(filename);
   }
+
+  // ---------- dossierregel kopiëren ----------
+
+  document.getElementById("btnCopyDossier").addEventListener("click", function(){
+    var el = document.getElementById("dossierregel");
+    var btn = document.getElementById("btnCopyDossier");
+    function markCopied(){
+      var oldText = btn.textContent;
+      btn.textContent = "Gekopieerd";
+      btn.classList.add("copied");
+      setTimeout(function(){
+        btn.textContent = oldText;
+        btn.classList.remove("copied");
+      }, 1500);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(el.value).then(markCopied).catch(function(){
+        el.select();
+        try{ document.execCommand("copy"); markCopied(); }catch(e){}
+      });
+    } else {
+      el.select();
+      try{ document.execCommand("copy"); markCopied(); }catch(e){}
+    }
+  });
 
   // ---------- init ----------
   load();
